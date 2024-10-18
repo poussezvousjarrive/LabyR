@@ -1,3 +1,5 @@
+library(TurtleGraphics)
+
 Loggerhead <- setRefClass(
   "Loggerhead",
   fields = list(
@@ -6,6 +8,8 @@ Loggerhead <- setRefClass(
   methods = list(
     initialize = function() {
       matrix <<- list()
+      turtle_init() # Initialize turtle graphics
+      turtle_hide()
     },
 
    # Méthode pour ajouter un nouveau layer
@@ -14,7 +18,7 @@ Loggerhead <- setRefClass(
     },
 
     # Méthode publique pour dessiner en 3 dimensions
-    goto = function(x, y, z, delta) {
+    goto3d = function(x, y, z, fill, delta) {
       # Calcul du nombre de layers nécessaires
       num_layers <- ceiling(abs(z) / delta)  
       
@@ -25,6 +29,9 @@ Loggerhead <- setRefClass(
       # Assurer qu'il y a suffisamment de layers
       while (length(matrix) < num_layers) addLayer()
 
+      # Réinitialiser l'environnement graphique
+      turtle_reset()
+
       # Découpage du mouvement en couches 2D
       for (i in seq_len(num_layers)) {
         current_x <- dx * i
@@ -32,17 +39,24 @@ Loggerhead <- setRefClass(
         current_layer <- i
 
         # Ajout du déplacement sur le layer actuel
-        .goto(
+        goto2d(
           current_layer,
           current_x, 
           current_y, 
-          fill = TRUE
+          fill = fill
         )
+
+        turtle_goto(current_x, current_y)
+        if (i %% 2 == 0) {
+          turtle_right(90)
+        } else {
+          turtle_left(90)
+        }
       }
     },
 
-    # Méthode privée pour ajouter une position à un layer spécifique
-    .goto = function(layerIndex, x, y, fill = FALSE) {
+    # Méthode publique pour ajouter une position à un layer spécifique
+    goto2d = function(layerIndex, x, y, fill = TRUE) {
       if (length(matrix) < layerIndex || layerIndex < 1) {
         stop("Invalid layer index")
       }
@@ -60,8 +74,6 @@ turtle$addLayer()
 turtle$addLayer()
 
 # Ajouter des positions dans les layers
-turtle$.goto(1, 1, 2, TRUE)
-turtle$.goto(1, 3, 4, FALSE)
-turtle$.goto(2, 5, 6, TRUE)
+turtle$goto3d(1, 5, 5, TRUE, 0.5)
 
 print(turtle$matrix)
