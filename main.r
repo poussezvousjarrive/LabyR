@@ -30,26 +30,23 @@ Loggerhead <- setRefClass(
         current_x <- dx * i
         current_y <- dy * i
         current_layer <- i
-        current_speed <- sqrt(current_x^2 + current_y^2 + dz^2)
 
         # Ajout du déplacement sur le layer actuel
         .goto(
-          current_layer, 7
+          current_layer,
           current_x, 
           current_y, 
-          fill = TRUE, 
-          speed = current_speed
+          fill = TRUE
         )
-      }
       }
     },
 
     # Méthode privée pour ajouter une position à un layer spécifique
-    .goto = function(layerIndex, x, y, fill = FALSE, speed = 0.0) {
+    .goto = function(layerIndex, x, y, fill = FALSE) {
       if (length(matrix) < layerIndex || layerIndex < 1) {
         stop("Invalid layer index")
       }
-      position <- c(x, y, fill, speed)
+      position <- c(x, y, fill)
       matrix[[layerIndex]] <<- append(matrix[[layerIndex]], list(position))
     }
   )
@@ -63,8 +60,8 @@ turtle$addLayer()
 turtle$addLayer()
 
 # Ajouter des positions dans les layers
-turtle$.goto(1, 1, 2, TRUE, 3.5)
-turtle$.goto(1, 3, 4, FALSE, 2.2)
-turtle$.goto(2, 5, 6, TRUE, 1.0)
+turtle$.goto(1, 1, 2, TRUE)
+turtle$.goto(1, 3, 4, FALSE)
+turtle$.goto(2, 5, 6, TRUE)
 
 print(turtle$matrix)
