@@ -53,3 +53,4 @@ rsconnect/
 replit.nix
 .replit
 >>>>>>> 6ff7ae0 (initial commit needed)
+examples/*
