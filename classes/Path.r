@@ -1,6 +1,8 @@
 library(R6)
 
 Path <- R6Class("Path",
+  class = TRUE,
+
   public = list(
     x = 0,
     y = 0,
@@ -8,60 +10,48 @@ Path <- R6Class("Path",
     movements = list(), # Liste pour stocker les mouvements
 
     initialize = function(x=0, y=0, facing=c(1, 0)) {
-      self$x <- x
-      self$y <- y
       self$facing <- facing
-      self$movement(x, y, x, y)
+      self$move(x, y, x, y)
     },
 
-    # Déplace vers l'avant dans la direction actuelle
+    # Constructeur alternatif à partir de coordonnées
+    fromCoords = function(coords) {
+      path <- Path$new(coords[[1]][1], coords[[1]][2])
+
+      for (i in 2:length(coords)) {
+        point <- coords[[i]]
+        path$move(path$x, path$y, point[1], point[2])
+      }
+
+      path$move(path$x, path$y, coords[[1]][1], coords[[1]][2])
+      return(path)
+    },
+
+    # Méthode publique pour avancer dans la direction actuelle
     forward = function(value, fill=1.0) {
       new_x <- self$x + value * self$facing[1]
       new_y <- self$y + value * self$facing[2]
-      self$movement(self$x, self$y, new_x, new_y, fill)
+      
+      self$move(self$x, self$y, new_x, new_y, fill)
 
       self$x <- new_x
       self$y <- new_y
     },
 
-    # Tourne l'angle de direction de l'objet
+    # Méthode publique pour modifier la direction actuelle
     turn = function(angle) {
       radians <- angle * pi / 180
       new_facing_x <- cos(radians) * self$facing[1] - sin(radians) * self$facing[2]
       new_facing_y <- sin(radians) * self$facing[1] + cos(radians) * self$facing[2]
-      self$facing <- c(new_facing_x, new_facing_y)
-    }
-    
-  ),
+      self$facing <- round(c(new_facing_x, new_facing_y), 10)
+    },
 
-  static = list(
-
-    # Fonction statique capable de fusionner des tracés
-    merge = function(paths) {
-      final_path <- paths[[1]]
-
-      for (i in 2:length(paths)) {
-        final_path <- private$fusion(final_path, paths[[i]])
-      }
-
-      return(final_path)
-    }
-    
-  )
-
-  private = list(
-    
-    # Enregistre chaque déplacement avec (x, y, fill)
-    movement = function(x1, y1, x2, y2, fill=1.0) {
-      self$movements <- append(self$movements, list(c(x2, y2, fill)))
-    }
-
-    # Fonction privée pour fusionner deux tracés
+    # Fonction publique pour fusionner deux tracés
     fusion = function(path1, path2) {
-      if (!all(inherits(path1, "Path") & inherits(path2, "Path"))) {
-        stop("All objects to be merge should be instances of 'Path'")
+      if (!all(inherits(path1, "Path") && inherits(path2, "Path"))) {
+        stop("All objects to be merged should be instances of 'Path'")
       }
-                      
+
       last_point_path1 <- path1$movements[[length(path1$movements)]][1:2]
       first_point_path2 <- path2$movements[[1]][1:2]
 
@@ -74,6 +64,13 @@ Path <- R6Class("Path",
       } else {
         stop("Unable to fuse : the provided paths don't join")
       }
+    },
+
+    # Méthode publique pour enregistrer un mouvement
+    move = function(x1, y1, x2, y2, fill=1.0) {
+      self$movements <- append(self$movements, list(c(x2, y2, fill)))
+      self$x <- x2
+      self$y <- y2
     }
     
   )

@@ -15,7 +15,7 @@ Loggerhead <- R6Class("Loggerhead",
 
     # Méthode publique pour ajouter un nouveau calque
     addLayer = function() {
-      layer <- Layer$new()
+      layer <- Path$new()
       self$layers <- append(self$layers, list(layer))
       layerIndex <- length(self$layers)
       self$selectLayer(layerIndex)
@@ -41,11 +41,12 @@ Loggerhead <- R6Class("Loggerhead",
           stop("All shapes must be of class 'Polygon'")
         } else {
           polygonPath <- polygon$toPrintPath()
-          layer <- Layer$merge(layer, polygonPath)
+          layer <- Path$new()$fusion(layer, polygonPath)
         }
       }
     },
 
+    # Méthode publique pour tracer librement
     freeDraw = function(moves) {
       if(!self$activeLayer) stop("No layer registered")
       # free draw

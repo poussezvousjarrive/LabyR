@@ -1,6 +1,8 @@
 library(R6)
 
 Polygon <- R6Class("Polygon",
+  class = TRUE,
+  
   public = list(
     vertices = NULL, # Liste des sommets du polygone
 
@@ -24,10 +26,25 @@ Polygon <- R6Class("Polygon",
       self$vertices <- lapply(movements, function(m) m[1:2])
     },
 
-
     # Méthode publique pour renvoyer un tracé optimisé
     toPrintPath = function() {
-      # :-> Path
+      new_path <- Path$new()
+      
+      for (i in 1:length(self$vertices)) {
+        vertex <- self$vertices[[i]]
+
+        if (i == 1) {
+          new_path$forward(0)
+        } else {
+          dx <- vertex[1] - new_path$x
+          dy <- vertex[2] - new_path$y
+
+          angle <- atan2(dy, dx) * 180 / pi
+          new_path$turn(angle)
+          new_path$forward(sqrt(dx^2 + dy^2))
+        }
+      }
+      return(new_path)
     }
 
   )
