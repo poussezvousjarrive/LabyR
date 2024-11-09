@@ -1,4 +1,5 @@
 library(R6)
+library(TurtleGraphics)
 
 Loggerhead <- R6Class("Loggerhead",
   class = TRUE,
@@ -44,6 +45,8 @@ Loggerhead <- R6Class("Loggerhead",
           layer <- Path$new()$fusion(layer, polygonPath)
         }
       }
+
+      self$layers[[self$activeLayer]] <- layer
     },
 
     # Méthode publique pour tracer librement
