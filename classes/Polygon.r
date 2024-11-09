@@ -45,6 +45,17 @@ Polygon <- R6Class("Polygon",
         }
       }
       return(new_path)
+    },
+
+    # Surcharge de la fonction d'affichage
+    print = function() {
+      origin <- self$vertices[[1]]
+      
+      cat("<Polygon>",
+          "\n\tVertices: ", length(self$vertices) - 1, " (+ 1)",
+          "\n\tOrigin: (", origin[1], ', ', origin[2], ")",
+          "\n",
+      sep = "")
     }
 
   )
