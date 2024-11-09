@@ -1,27 +1,55 @@
-Loggerhead <- setRefClass(
-  "Loggerhead",
-  fields = list(
-    matrix = "list"
-  ),
-  methods = list(
+library(R6)
+
+Loggerhead <- R6Class("Loggerhead",
+  class = TRUE,
+ 
+  public = list(
+    layers = NULL,
+    activeLayer = NULL,
+
     initialize = function() {
-      matrix <<- list()
+      self$layers <- list()
       turtle_init() # Initialise turtle graphics
       turtle_hide()
     },
 
-   # Méthode pour ajouter un nouveau layer
+    # Méthode publique pour ajouter un nouveau calque
     addLayer = function() {
-      matrix <<- append(matrix, list(list()))  # Ajouter un layer vide
+      layer <- Layer$new()
+      self$layers <- append(self$layers, list(layer))
+      layerIndex <- length(self$layers)
+      self$selectLayer(layerIndex)
     },
 
-    # Méthode publique pour ajouter une position à un layer spécifique
-    goto = function(layerIndex, x, y, fill = TRUE) {
-      if (length(matrix) < layerIndex || layerIndex < 1) {
-        stop("Invalid layer index")
+    # Méthode publique pour changer le calque actif
+    selectLayer = function(layerIndex) {
+      if (layerIndex < 1 || layerIndex > length(self$layers)) {
+        stop("Layer index out of bounds")
+      } else {
+        self$activeLayer <- layerIndex
       }
-      position <- c(x, y, fill)
-      matrix[[layerIndex]] <<- append(matrix[[layerIndex]], list(position))
+    },
+
+    # Méthode publique pour ajouter des polygones au calque
+    buildShapes = function(polygons) {
+      if(is.null(self$activeLayer)) stop("No active layer selected")
+
+      layer <- self$layers[[self$activeLayer]]
+
+      for (polygon in polygons) {
+        if (!inherits(polygon, "Polygon")) {
+          stop("All shapes must be of class 'Polygon'")
+        } else {
+          polygonPath <- polygon$toPrintPath()
+          layer <- Layer$merge(layer, polygonPath)
+        }
+      }
+    },
+
+    freeDraw = function(moves) {
+      if(!self$activeLayer) stop("No layer registered")
+      # free draw
     }
+    
   )
 )
