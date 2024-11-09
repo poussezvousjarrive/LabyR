@@ -71,6 +71,16 @@ Path <- R6Class("Path",
       self$movements <- append(self$movements, list(c(x2, y2, fill)))
       self$x <- x2
       self$y <- y2
+    },
+
+    # Surcharge de la fonction d'affichage
+    print = function() {
+      movement_strings <- sapply(self$movements, function(move) {
+        paste0("(", move[1], ", ", move[2], ")")
+      })
+
+      movement_path <- paste(movement_strings, collapse = " -> ")
+      cat("<Path>", movement_path, "\n", sep = " ")
     }
     
   )
