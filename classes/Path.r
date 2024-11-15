@@ -81,7 +81,28 @@ Path <- R6Class("Path",
 
       movement_path <- paste(movement_strings, collapse = " -> ")
       cat("<Path>", movement_path, "\n", sep = " ")
-    }
+    },
     
+    
+    # Méthode publique pour visualiser un chemin
+    display = function() {
+      turtle_reset()
+      turtle_hide()
+      
+      curr_pos <- self$movements[[1]]
+      for (i in 1:(length(self$movements) - 1)) {
+        next_pos <- self$movements[[i+1]]
+        # Si ce vecteur a la mention FILL
+        if (next_pos[3] != 0) {
+          turtle_down()
+          turtle_goto(next_pos[1], next_pos[2])
+        } else { 
+          turtle_up()
+          turtle_goto(next_pos[1], next_pos[2])
+        }
+
+        pos <- next_pos 
+      }
+    }
   )
 )
