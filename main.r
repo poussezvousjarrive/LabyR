@@ -5,7 +5,7 @@ source('classes/Path.r')
 source('classes/Polygon.r')
 
 # Exemple d'utilisation
-turtle <- Loggerhead$new()
+turtle <- Loggerhead$new("u83", 0.5) # 0.5 = rayon filament 
 
 # Définir un carré de côté 1
 path <- Path$new()
@@ -25,4 +25,4 @@ turtle$buildShapes(list(
 ))
 
 # Afficher le dernier calque
-# turtle$display()
+turtle$genFile()
