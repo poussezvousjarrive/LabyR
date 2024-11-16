@@ -86,7 +86,13 @@ Path <- R6Class("Path",
     
     # Méthode publique pour visualiser un chemin
     display = function() {
-      turtle_reset()
+      status <- try(turtle_status(), silent=TRUE)
+      if(inherits(status, "try-error")) {
+        turtle_init()
+      } else {
+        turtle_reset()
+      }
+
       turtle_hide()
       
       curr_pos <- self$movements[[1]]
