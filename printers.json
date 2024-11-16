@@ -1,0 +1,8 @@
+{
+  "u83":
+  {
+    "nozzle_diam": "0.5",
+    "start_code" : "G21\nG90\nM82\nM107\nG28\nG1 Z5.0 F9000\nM109 S190\nM106 S127\nM190 S50\nG92 E0\nG1 F200 E3\nG92 E0\nG1 F9000\n",
+    "end_code" : "M104 S0\nM140 S0\nG91\nG1 E-1 F300\nG1 Z0.5 E-5 F9000\nG28 X0 Y0\nM83\nM107\nG90\nM2"
+  }
+}
