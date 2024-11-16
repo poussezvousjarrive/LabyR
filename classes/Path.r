@@ -86,18 +86,15 @@ Path <- R6Class("Path",
     
     # Méthode publique pour visualiser un chemin
     display = function() {
-      status <- try(turtle_status(), silent=TRUE)
-      if(inherits(status, "try-error")) {
-        turtle_init()
-      } else {
-        turtle_reset()
-      }
-
+      turtle_init()
       turtle_hide()
+      turtle_up()
+      turtle_goto(0, 0)
       
       curr_pos <- self$movements[[1]]
       for (i in 1:(length(self$movements) - 1)) {
         next_pos <- self$movements[[i+1]]
+        print(next_pos)
         # Si ce vecteur a la mention FILL
         if (next_pos[3] != 0) {
           turtle_down()
