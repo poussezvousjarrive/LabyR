@@ -7,7 +7,7 @@ Il fallait stocker les paramètres d'impression pour une imprimante donnée afin
     { 
       "nozzle_diam" : "(nozzle diam)",
       "start_code" : "...",
-      "end_cod" : "..."
+      "end_code" : "..."
     }
 }
 ```
