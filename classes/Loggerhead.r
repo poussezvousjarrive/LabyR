@@ -7,6 +7,10 @@ Loggerhead <- R6Class("Loggerhead",
   public = list(
     layers = NULL,
     activeLayer = NULL,
+    delta = 0.5,
+    flow_rate = 1,
+    nozzle_diam = 0.25,
+    fil_radius = 0.5,
 
     initialize = function() {
       self$layers <- list()
@@ -54,59 +58,45 @@ Loggerhead <- R6Class("Loggerhead",
       if(!self$activeLayer) stop("No layer registered")
       # free draw
     },
-
+    
     # Méthode publique
-    # pour visualiser une couche 2D
-    display = function(layerIndex) {
-      layer <- matrix[[layerIndex]]
+    # Pour générer le GCode correspondant à toutes les couches
+    genFile = function(filename = "out.gcode") {
+      gcode_str <- "HEADER TEST\n"
 
-      pos <- c(0.0, 0.0, 0.0) # Origine du tracé (le 3ème = FILL)
-     
-      turtle_reset()
-      turtle_hide()
-     
-      # Largeur du pinceau (pour tracer un point solitaire)
-      # (comme un ver solitaire)
-      lwd <- turtle_status()$DisplayOptions$lwd 
-     
-      for (i in range(1:length(layer))) {
-        next_vec <- layer[[i]]
-        next_pos <- c(pos[1] + next_vec[1],
-                     pos[2] + next_vec[2],
-                     next_vec[3])
-        # Si ce vecteur a la mention FILL,
-        # on affiche la ligne entre les deux
-        if (next_pos[3]) {
-          turtle_down()
-          turtle_goto(next_pos[1], next_pos[2])
-        } else { 
-          # Sinon on se déplace de manière invisible 
-          # et on affiche simplement le prochain point
-          # sous forme d'une petit carré
-          turtle_up()
-          turtle_goto(next_pos[1], next_pos[2])
-         
-          # Carré côté largeur du pinceau
-          turtle_forward(lwd/2)
-          turtle_left(90)
-         
-          turtle_down()
-          turtle_forward(lwd/2)
-          for (j in 1:3) {
-            turtle_left(90)
-            turtle_forward(lwd)
+      for (i in 1:length(self$layers)) {
+        # Coordonnée Z absolue (i-1 fois la hauteur d'une couche, 
+        # la première couche étant à Z = 0)
+        z <- (i-1)*self$delta
+  
+        movs <- self$layers[[i]]$movements
+        
+        if (length(movs) > 0) {
+          curr_p <- movs[[1]] 
+          
+          for (j in 1:(length(movs) - 1)) {
+            next_p <- movs[[j+1]]
+            # Mention FILL
+            if (next_p[3] != 0) {
+              ## Toute cette partie sert à calculer le taux d'extrusion pour un vecteur donné
+              # Première étape : savoir la longueur de la ligne qu'on trace
+              curr_line_l <- sqrt((next_p[1] - curr_p[1])**2 + (next_p[2] - curr_p[2])**2)
+              # Volume de fil à extruder 
+              extr_v <- self$delta * self$flow_rate * self$nozzle_diam * curr_line_l
+              # On divise par la surface du filament (qui dépend de son rayon)
+              # et on obtient la longueur
+              extr_l <- extr_v / (pi * (self$fil_radius)**2)
+              # Commande G1 : Mouvement de travail (avec extrusion)
+              curr_str <- sprintf("G1 X%f Y%f Z%f E%f\n", next_p[1], next_p[2], z, extr_l)
+            } else {
+              # Si FILL = 0 : mouvement rapide G0 (mouvement rapide sans extrusion)
+              curr_str <- sprintf("G0 X%f Y%f Z%f\n", next_p[1], next_p[2], z)
+            }
+            gcode_str <- paste(gcode_str, curr_str, sep='')
           }
-          turtle_left(90)
-          turtle_forward(lwd/2)
-         
-          turtle_up()
-          turtle_left(90)
-          turtle_forward(lwd/2)
         }
-       
-        # La position suivante devient la position actuelle
-        pos <- next_pos 
       }
+      write(gcode_str, filename)
     }
   )
 )
