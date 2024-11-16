@@ -12,7 +12,7 @@ Loggerhead <- R6Class("Loggerhead",
     flow_rate = NULL,
     printer = NULL,
     printer_data = NULL,
-    fil_radius = 0.5,
+    fil_radius = NULL,
     nozzle_diam = NULL,
 
     initialize = function(printer, fil_radius, flow_rate = 1, delta = 0.5) {
