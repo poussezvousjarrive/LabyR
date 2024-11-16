@@ -12,7 +12,7 @@ Loggerhead <- R6Class("Loggerhead",
     flow_rate = NULL,
     printer = NULL,
     printer_data = NULL,
-    fil_radius = NULL,
+    fil_radius = 0.5,
     nozzle_diam = NULL,
 
     initialize = function(printer, fil_radius, flow_rate = 1, delta = 0.5) {
@@ -74,6 +74,13 @@ Loggerhead <- R6Class("Loggerhead",
     freeDraw = function(moves) {
       if(!self$activeLayer) stop("No layer registered")
       # free draw
+    },
+    
+    # Méthode publique
+    # Affiche la couche actuelle
+    # (Appelle juste display() de la couche)
+    display = function() {
+      self$layers[[self$activeLayer]]$display()
     },
     
     # Méthode publique
