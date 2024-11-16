@@ -1,5 +1,6 @@
 library(R6)
 library(TurtleGraphics)
+library(jsonlite)
 
 Loggerhead <- R6Class("Loggerhead",
   class = TRUE,
@@ -7,13 +8,29 @@ Loggerhead <- R6Class("Loggerhead",
   public = list(
     layers = NULL,
     activeLayer = NULL,
-    delta = 0.5,
-    flow_rate = 1,
-    nozzle_diam = 0.25,
+    delta = NULL,
+    flow_rate = NULL,
+    printer = NULL,
+    printer_data = NULL,
     fil_radius = 0.5,
+    nozzle_diam = NULL,
 
-    initialize = function() {
+    initialize = function(printer, fil_radius, flow_rate = 1, delta = 0.5) {
       self$layers <- list()
+      
+      self$printer <- printer
+      self$printer_data = read_json("printers.json")[[printer]]
+      if (is.null(self$printer_data)) {
+        print("WARNING : Data needed to generate GCode for your printer does not exist in printers.json")
+        self$nozzle_diam = 0.5 # Fallait bien mettre une valeur par défaut
+      } else {
+        self$nozzle_diam = as.numeric(self$printer_data$nozzle_diam)
+      }
+      
+      self$fil_radius <- fil_radius
+      self$flow_rate <- flow_rate
+      self$delta <- delta
+      
       turtle_init() # Initialise turtle graphics
       turtle_hide()
     },
@@ -62,7 +79,8 @@ Loggerhead <- R6Class("Loggerhead",
     # Méthode publique
     # Pour générer le GCode correspondant à toutes les couches
     genFile = function(filename = "out.gcode") {
-      gcode_str <- "HEADER TEST\n"
+      # En-tête spécifique à l'imprimante
+      gcode_str <- self$printer_data$start_code
 
       for (i in 1:length(self$layers)) {
         # Coordonnée Z absolue (i-1 fois la hauteur d'une couche, 
@@ -96,6 +114,8 @@ Loggerhead <- R6Class("Loggerhead",
           }
         }
       }
+      # Code de fin spécifique à l'imprimante
+      gcode_str <- paste(gcode_str, self$printer_data$end_code, sep='')
       write(gcode_str, filename)
     }
   )
