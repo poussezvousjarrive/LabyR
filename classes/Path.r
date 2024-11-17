@@ -38,12 +38,17 @@ Path <- R6Class("Path",
       self$y <- new_y
     },
 
-    # Méthode publique pour modifier la direction actuelle
+    # Méthode publique pour faire tourner la direction actuelle d'un certain angle
     turn = function(angle) {
       radians <- angle * pi / 180
       new_facing_x <- cos(radians) * self$facing[1] - sin(radians) * self$facing[2]
+      cat(angle, sep='\n')
       new_facing_y <- sin(radians) * self$facing[1] + cos(radians) * self$facing[2]
-      cat(new_facing_x, ' ', new_facing_y, '\n')
+      self$facing <- round(c(new_facing_x, new_facing_y), 10)
+    },
+    
+    # Méthode publique pour modifier directement le vecteur direction actuel
+    set_facing = function(new_facing_x, new_facing_y) {
       self$facing <- round(c(new_facing_x, new_facing_y), 10)
     },
 

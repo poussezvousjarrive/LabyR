@@ -38,10 +38,9 @@ Polygon <- R6Class("Polygon",
         } else {
           dx <- vertex[1] - new_path$x
           dy <- vertex[2] - new_path$y
-
-          angle <- atan2(dy, dx) * 180 / pi
-          new_path$turn(angle)
-          new_path$forward(sqrt(dx^2 + dy^2))
+          norm <- sqrt(dx**2 + dy**2)
+          new_path$set_facing(dx/norm, dy/norm)
+          new_path$forward(norm)
         }
       }
       return(new_path)
