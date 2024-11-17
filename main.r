@@ -25,4 +25,5 @@ turtle$buildShapes(list(
 ))
 
 # Afficher le dernier calque
+turtle$display()
 turtle$genFile()

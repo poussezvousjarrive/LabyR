@@ -43,6 +43,7 @@ Path <- R6Class("Path",
       radians <- angle * pi / 180
       new_facing_x <- cos(radians) * self$facing[1] - sin(radians) * self$facing[2]
       new_facing_y <- sin(radians) * self$facing[1] + cos(radians) * self$facing[2]
+      cat(new_facing_x, ' ', new_facing_y, '\n')
       self$facing <- round(c(new_facing_x, new_facing_y), 10)
     },
 
@@ -94,7 +95,7 @@ Path <- R6Class("Path",
       curr_pos <- self$movements[[1]]
       for (i in 1:(length(self$movements) - 1)) {
         next_pos <- self$movements[[i+1]]
-        print(next_pos)
+
         # Si ce vecteur a la mention FILL
         if (next_pos[3] != 0) {
           turtle_down()
@@ -109,3 +110,11 @@ Path <- R6Class("Path",
     }
   )
 )
+
+p <- Path$new()
+p$move(0,0,0,0)
+#p$move(0,0,50,0)
+#p$move(50,0,50,50)
+#p$move(50,50,50,0)
+#p$move(50,0,50,0)
+p$display()
