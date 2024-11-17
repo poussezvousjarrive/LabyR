@@ -12,8 +12,11 @@ Loggerhead <- R6Class("Loggerhead",
     flow_rate = NULL,
     printer = NULL,
     printer_data = NULL,
-    fil_radius = 0.5,
-    nozzle_diam = NULL,
+    fil_radius = NULL,
+    # Valeurs "génériques" (si l'imprimante n'existe pas dans printers.json)
+    nozzle_diam = 0.5,
+    print_speed = 300,
+    travel_speed = 9000,
 
     initialize = function(printer, fil_radius, flow_rate = 1, delta = 0.5) {
       self$layers <- list()
@@ -22,9 +25,10 @@ Loggerhead <- R6Class("Loggerhead",
       self$printer_data = read_json("printers.json")[[printer]]
       if (is.null(self$printer_data)) {
         print("WARNING : Data needed to generate GCode for your printer does not exist in printers.json")
-        self$nozzle_diam = 0.5 # Fallait bien mettre une valeur par défaut
       } else {
         self$nozzle_diam = as.numeric(self$printer_data$nozzle_diam)
+        self$print_speed = as.numeric(self$printer_data$print_speed)
+        self$travel_speed = as.numeric(self$printer_data$travel_speed)
       }
       
       self$fil_radius <- fil_radius
@@ -87,12 +91,13 @@ Loggerhead <- R6Class("Loggerhead",
     # Pour générer le GCode correspondant à toutes les couches
     genFile = function(filename = "out.gcode") {
       # En-tête spécifique à l'imprimante
-      gcode_str <- self$printer_data$start_code
+      gcode_str <- paste("; START SEQUENCE (in printers.json)\n", self$printer_data$start_code, sep='')
 
       for (i in 1:length(self$layers)) {
         # Coordonnée Z absolue (i-1 fois la hauteur d'une couche, 
         # la première couche étant à Z = 0)
-        z <- (i-1)*self$delta
+        z <- i*self$delta
+        gcode_str <- paste(gcode_str, sprintf("\n; LAYER %d\n", i), sep = '')
   
         movs <- self$layers[[i]]$movements
         
@@ -112,16 +117,18 @@ Loggerhead <- R6Class("Loggerhead",
               # et on obtient la longueur
               extr_l <- extr_v / (pi * (self$fil_radius)**2)
               # Commande G1 : Mouvement de travail (avec extrusion)
-              curr_str <- sprintf("G1 X%f Y%f Z%f E%f\n", next_p[1], next_p[2], z, extr_l)
+              curr_str <- sprintf("G1 X%f Y%f Z%f F%f E%f\n", next_p[1], next_p[2], z, self$print_speed, extr_l)
             } else {
               # Si FILL = 0 : mouvement rapide G0 (mouvement rapide sans extrusion)
-              curr_str <- sprintf("G0 X%f Y%f Z%f\n", next_p[1], next_p[2], z)
+              curr_str <- sprintf("G0 X%f Y%f Z%f F%f\n", next_p[1], next_p[2], z, self$travel_speed)
             }
             gcode_str <- paste(gcode_str, curr_str, sep='')
           }
+          gcode_str <- paste(gcode_str, "\n")
         }
       }
       # Code de fin spécifique à l'imprimante
+      gcode_str <- paste(gcode_str, "\n\n; END SEQUENCE\n", sep='')
       gcode_str <- paste(gcode_str, self$printer_data$end_code, sep='')
       write(gcode_str, filename)
     }
