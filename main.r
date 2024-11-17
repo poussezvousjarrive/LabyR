@@ -24,6 +24,15 @@ turtle$buildShapes(list(
   square
 ))
 
+turtle$addLayer()
+freeWill = Path$new()
+freeWill$forward(40)
+
+# Tracé interprété comme déplacement
+turtle$freeDraw(
+  freeWill
+)
+
 # Afficher le dernier calque
 turtle$display()
 turtle$genFile()

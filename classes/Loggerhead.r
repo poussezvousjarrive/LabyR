@@ -78,6 +78,7 @@ Loggerhead <- R6Class("Loggerhead",
     freeDraw = function(moves) {
       if(!self$activeLayer) stop("No layer registered")
       # free draw
+      self$layers[[self$activeLayer]] <- moves
     },
     
     # Méthode publique
@@ -103,6 +104,11 @@ Loggerhead <- R6Class("Loggerhead",
         
         if (length(movs) > 0) {
           curr_p <- movs[[1]] 
+          # Aller vers le premier point de la couche !
+          # J'ignore la possiblilité où le premier point de la couche aurait FILL
+          # car ça n'a aucune utilité d'extruder en montant simplement sur Z (je pense ?)
+          curr_str <- sprintf("G0 X%f Y%f Z%f F%f\n", curr_p[1], curr_p[2], z, self$travel_speed)
+          gcode_str <- paste(gcode_str, curr_str, sep='')
           
           for (j in 1:(length(movs) - 1)) {
             next_p <- movs[[j+1]]
@@ -111,7 +117,7 @@ Loggerhead <- R6Class("Loggerhead",
               ## Toute cette partie sert à calculer le taux d'extrusion pour un vecteur donné
               # Première étape : savoir la longueur de la ligne qu'on trace
               curr_line_l <- sqrt((next_p[1] - curr_p[1])**2 + (next_p[2] - curr_p[2])**2)
-              cat('CURR P\n');print(curr_p); cat('NEXT P\n');print(next_p)
+              #cat('CURR P\n');print(curr_p); cat('NEXT P\n');print(next_p)
               # Volume de fil à extruder 
               extr_v <- self$delta * self$flow_rate * self$nozzle_diam * curr_line_l
               # On divise par la surface du filament (qui dépend de son rayon)
