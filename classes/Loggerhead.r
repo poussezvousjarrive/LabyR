@@ -111,6 +111,7 @@ Loggerhead <- R6Class("Loggerhead",
               ## Toute cette partie sert à calculer le taux d'extrusion pour un vecteur donné
               # Première étape : savoir la longueur de la ligne qu'on trace
               curr_line_l <- sqrt((next_p[1] - curr_p[1])**2 + (next_p[2] - curr_p[2])**2)
+              cat('CURR P\n');print(curr_p); cat('NEXT P\n');print(next_p)
               # Volume de fil à extruder 
               extr_v <- self$delta * self$flow_rate * self$nozzle_diam * curr_line_l
               # On divise par la surface du filament (qui dépend de son rayon)
@@ -123,6 +124,7 @@ Loggerhead <- R6Class("Loggerhead",
               curr_str <- sprintf("G0 X%f Y%f Z%f F%f\n", next_p[1], next_p[2], z, self$travel_speed)
             }
             gcode_str <- paste(gcode_str, curr_str, sep='')
+            curr_p <- next_p
           }
           gcode_str <- paste(gcode_str, "\n")
         }

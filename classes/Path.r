@@ -115,11 +115,3 @@ Path <- R6Class("Path",
     }
   )
 )
-
-p <- Path$new()
-p$move(0,0,0,0)
-#p$move(0,0,50,0)
-#p$move(50,0,50,50)
-#p$move(50,50,50,0)
-#p$move(50,0,50,0)
-p$display()
