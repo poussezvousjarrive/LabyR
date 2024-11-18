@@ -111,13 +111,33 @@ Path <- R6Class("Path",
         return(append(left, append(list(pivot), right)))
       }
       movs <- sortPoints(movs)
-      print(movs)
+      
+      cross <- function(f, b) {
+        o <- f[1]
+        a <- f[2]
+        prod <- (a[1] - o[1]) * (b[2] - o[2])
+        return(prod - (a[2] - o[2]) * (b[1] - o[1]))
+      }
+      
       # 2 : Construire enveloppe du bas
-      
+      for (p in movs) {
+        while(length(lower_hull) >= 2 && cross(tail(lower_hull, 2), p) <= 0) {
+          # On retire le dernier élément
+          lower_hull <- head(lower_hull, -1)
+        }
+        lower_hull[[length(lower_hull) + 1]] <- p
+      }
       # 3 : Construire enveloppe du haut
-      
+      for (p in rev(movs)) {
+        while(length(upper_hull) >= 2 && cross(tail(upper_hull, 2), p) <= 0) {
+          # On retire le dernier élément
+          upper_hull <- head(upper_hull, -1)
+        }
+        upper_hull[[length(upper_hull) + 1]] <- p
+      }
       # 4 : Adjoindre les deux en retirant le point de jonction 
       # (dernier de chaque liste)
+      return(append(head(lower_hull, -1), head(upper_hull, -1)))
     },
     
     # Méthode publique pour enregistrer un mouvement
