@@ -42,7 +42,6 @@ Path <- R6Class("Path",
     turn = function(angle) {
       radians <- angle * pi / 180
       new_facing_x <- cos(radians) * self$facing[1] - sin(radians) * self$facing[2]
-      cat(angle, sep='\n')
       new_facing_y <- sin(radians) * self$facing[1] + cos(radians) * self$facing[2]
       self$facing <- round(c(new_facing_x, new_facing_y), 10)
     },
@@ -55,7 +54,7 @@ Path <- R6Class("Path",
     # Fonction publique pour fusionner deux tracés
     fusion = function(path1, path2) {
       if (!all(inherits(path1, "Path") && inherits(path2, "Path"))) {
-        stop("All objects to be merged should be instances of 'Path'")
+        stop("ERROR : All objects to be merged should be instances of 'Path'")
       }
 
       last_point_path1 <- path1$movements[[length(path1$movements)]][1:2]
@@ -68,10 +67,59 @@ Path <- R6Class("Path",
         new_path$movements <- new_movements
         return(new_path)
       } else {
-        stop("Unable to fuse : the provided paths don't join")
+        stop("ERROR : Unable to fuse : the provided paths don't join")
       }
     },
 
+    # Méthode publique
+    # Génère une enveloppe convexe à partir des points du Path
+    # Permet de corriger la superposition des polygones (d'où le nom, c'est fou)
+    # Basé sur l'algorithme "Andrew monotone chain", 
+    # parmi les plus efficients (cmplxté de n log n, n = nb de points)
+    # (en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain)
+    fixOverlap = function() {
+      movs <- self$movements
+      if (length(movs) < 3) {
+        stop("ERROR : Can't fix overlap if Path does not make a polygon (at least 3 vertices)")
+      }
+      
+      lower_hull <- c()
+      upper_hull <- c()
+      
+      # 1 : Trier les points par coord.x  ; si même x trier par y
+      # (Obligé de réimplémenter un quick sort car la fonction
+      # sort ne peut pas trier des points - en tout cas j'ai pas réussi)
+      sortPoints <- function(pts) {
+        pivot <- sample(pts, 1)[[1]]
+        print(typeof(pivot))
+        left <- list()
+        right <- list()
+        
+        lapply(pts, function(p) {
+          if (!identical(p, pivot)) {
+            if (p[1] < pivot[1] || (p[1] == pivot[1] && p[2] < pivot[2])) {
+              left <<- append(left, list(p))
+            } else {
+              right <<- append(right, list(p))
+            }
+          }
+        })
+        
+        if (length(left) > 1) left <- sortPoints(left)
+        if (length(right) > 1) right <- sortPoints(right)
+        
+        return(append(left, append(list(pivot), right)))
+      }
+      movs <- sortPoints(movs)
+      print(movs)
+      # 2 : Construire enveloppe du bas
+      
+      # 3 : Construire enveloppe du haut
+      
+      # 4 : Adjoindre les deux en retirant le point de jonction 
+      # (dernier de chaque liste)
+    },
+    
     # Méthode publique pour enregistrer un mouvement
     move = function(x1, y1, x2, y2, fill=1.0) {
       self$movements <- append(self$movements, list(c(x2, y2, fill)))

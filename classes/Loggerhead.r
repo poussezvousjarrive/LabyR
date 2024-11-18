@@ -24,7 +24,7 @@ Loggerhead <- R6Class("Loggerhead",
       self$printer <- printer
       self$printer_data = read_json("printers.json")[[printer]]
       if (is.null(self$printer_data)) {
-        print("WARNING : Data needed to generate GCode for your printer does not exist in printers.json")
+        print("WARNING : Data needed to generate GCode start/end sequences for your printer does not exist (check printers.json)")
       } else {
         self$nozzle_diam = as.numeric(self$printer_data$nozzle_diam)
         self$print_speed = as.numeric(self$printer_data$print_speed)
@@ -70,6 +70,8 @@ Loggerhead <- R6Class("Loggerhead",
           layer <- Path$new()$fusion(layer, polygonPath)
         }
       }
+      
+      layer$fixOverlap()
 
       self$layers[[self$activeLayer]] <- layer
     },
