@@ -140,5 +140,6 @@ Loggerhead <- R6Class("Loggerhead",
       gcode_str <- paste(gcode_str, self$printer_data$end_code, sep='')
       write(gcode_str, filename)
     }
+    
   )
 )
