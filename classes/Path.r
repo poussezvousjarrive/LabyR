@@ -11,8 +11,10 @@ Path <- R6Class("Path",
 
     initialize = function(x=0, y=0, facing=c(1, 0)) {
       self$facing <- facing
-      self$move(x, y, x, y)
-    },
+      self$x <- x
+      self$y <- y
+      self$movements <- list(c(x, y, 0.0)) # Pas de FILL pour le début du Path
+    }, 
 
     # Constructeur alternatif à partir de coordonnées
     fromCoords = function(coords) {
@@ -20,10 +22,10 @@ Path <- R6Class("Path",
 
       for (i in 2:length(coords)) {
         point <- coords[[i]]
-        path$move(path$x, path$y, point[1], point[2])
+        path$move(point[1], point[2])
       }
 
-      path$move(path$x, path$y, coords[[1]][1], coords[[1]][2])
+      path$move(coords[[1]][1], coords[[1]][2])
       return(path)
     },
 
@@ -32,7 +34,7 @@ Path <- R6Class("Path",
       new_x <- self$x + value * self$facing[1]
       new_y <- self$y + value * self$facing[2]
       
-      self$move(self$x, self$y, new_x, new_y, fill)
+      self$move(new_x, new_y, fill)
 
       self$x <- new_x
       self$y <- new_y
@@ -63,85 +65,20 @@ Path <- R6Class("Path",
       # Vérifie si le dernier point de P1 rejoint le premier point de P2
       if (all(last_point_path1 == first_point_path2)) {
         new_movements <- c(path1$movements, path2$movements[-1])
-        new_path <- Path$new()
-        new_path$movements <- new_movements
-        return(new_path)
       } else {
-        stop("ERROR : Unable to fuse : the provided paths don't join")
+        # Point intermédiaire : origine du path 2. Mouvement sans "FILL"
+        intermed_mov <- list(c(first_point_path2, 0.))
+        new_movements <- c(path1$movements, intermed_mov, path2$movements[-1])
       }
+      new_path <- Path$new()
+      new_path$movements <- new_movements
+      return(new_path)
     },
 
-    # Méthode publique
-    # Génère une enveloppe convexe à partir des points du Path
-    # Permet de corriger la superposition des polygones (d'où le nom, c'est fou)
-    # Basé sur l'algorithme "Andrew monotone chain", 
-    # parmi les plus efficients (cmplxté de n log n, n = nb de points)
-    # (en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain)
-    fixOverlap = function() {
-      movs <- self$movements
-      if (length(movs) < 3) {
-        stop("ERROR : Can't fix overlap if Path does not make a polygon (at least 3 vertices)")
-      }
-      
-      lower_hull <- c()
-      upper_hull <- c()
-      
-      # 1 : Trier les points par coord.x  ; si même x trier par y
-      # (Obligé de réimplémenter un quick sort car la fonction
-      # sort ne peut pas trier des points - en tout cas j'ai pas réussi)
-      sortPoints <- function(pts) {
-        pivot <- sample(pts, 1)[[1]]
-        print(typeof(pivot))
-        left <- list()
-        right <- list()
-        
-        lapply(pts, function(p) {
-          if (!identical(p, pivot)) {
-            if (p[1] < pivot[1] || (p[1] == pivot[1] && p[2] < pivot[2])) {
-              left <<- append(left, list(p))
-            } else {
-              right <<- append(right, list(p))
-            }
-          }
-        })
-        
-        if (length(left) > 1) left <- sortPoints(left)
-        if (length(right) > 1) right <- sortPoints(right)
-        
-        return(append(left, append(list(pivot), right)))
-      }
-      movs <- sortPoints(movs)
-      
-      cross <- function(f, b) {
-        o <- f[1]
-        a <- f[2]
-        prod <- (a[1] - o[1]) * (b[2] - o[2])
-        return(prod - (a[2] - o[2]) * (b[1] - o[1]))
-      }
-      
-      # 2 : Construire enveloppe du bas
-      for (p in movs) {
-        while(length(lower_hull) >= 2 && cross(tail(lower_hull, 2), p) <= 0) {
-          # On retire le dernier élément
-          lower_hull <- head(lower_hull, -1)
-        }
-        lower_hull[[length(lower_hull) + 1]] <- p
-      }
-      # 3 : Construire enveloppe du haut
-      for (p in rev(movs)) {
-        while(length(upper_hull) >= 2 && cross(tail(upper_hull, 2), p) <= 0) {
-          # On retire le dernier élément
-          upper_hull <- head(upper_hull, -1)
-        }
-        upper_hull[[length(upper_hull) + 1]] <- p
-      }
-      # 4 : Adjoindre les deux en retirant le point de jonction 
-      # (dernier de chaque liste)
-      return(append(head(lower_hull, -1), head(upper_hull, -1)))
-    },
-    
     # Méthode publique pour enregistrer un mouvement
-    move = function(x1, y1, x2, y2, fill=1.0) {
+    move = function(x2, y2, fill=1.0) {
+      if (x2 < 0) x2 = 0 # Cropping
+      if (y2 < 0) y2 = 0
       self$movements <- append(self$movements, list(c(x2, y2, fill)))
       self$x <- x2
       self$y <- y2
@@ -163,15 +100,16 @@ Path <- R6Class("Path",
       turtle_init()
       turtle_hide()
       turtle_up()
-      turtle_goto(0, 0)
       
       curr_pos <- self$movements[[1]]
+      turtle_goto(curr_pos[1], curr_pos[2])
       for (i in 1:(length(self$movements) - 1)) {
         next_pos <- self$movements[[i+1]]
 
         # Si ce vecteur a la mention FILL
         if (next_pos[3] != 0) {
           turtle_down()
+          #print(next_pos)
           turtle_goto(next_pos[1], next_pos[2])
         } else { 
           turtle_up()
